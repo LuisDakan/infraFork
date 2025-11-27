@@ -15,7 +15,7 @@
 
 - name: Copy linux mint sync script for images mirror
   ansible.builtin.copy:
-    src:  files/linux-mint/images/scripts/linux-mint-sync-images.sh
+    src: files/linux-mint/images/scripts/linux-mint-sync-images.sh
     dest: /usr/local/bin/linux-mint-sync-images.sh
     owner: root
     group: root
@@ -34,7 +34,7 @@
 
 - name: Copy linux mint sync script for repository mirror
   ansible.builtin.copy:
-    src:  files/linux-mint/repository/scripts/linux-mint-sync-repo.sh
+    src: files/linux-mint/repository/scripts/linux-mint-sync-repo.sh
     dest: /usr/local/bin/linux-mint-sync-repo.sh
     owner: root
     group: root

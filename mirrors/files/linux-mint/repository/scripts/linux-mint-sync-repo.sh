@@ -6,12 +6,12 @@
 # and checks the following conditions:
 #
 # - If the upstream mirror has new updates, the local mirror fetches them
-# - If the upstream mirror was updated less than 24 hours ago, the local mirror is considered up-to-date and no action is taken.
-# - If the upstream mirror was updated more than 24 hours ago it synchronizes again
+# - If the upstream mirror was updated less than 6 hours ago, the local mirror is considered up-to-date and no action is taken.
+# - If the upstream mirror was updated more than 12 hours ago it synchronizes again
 #
 # This script is intended to be run repeatedly by a cron job or a systemd timer.
 
-
+# Metadata of the mirror
 MIRROR_DIRECTORY=/srv/linux-mint
 LOCAL_MIRROR="lidsol.fi-b.unam.mx"
 MIRROR_DIRECTORY_RP=${MIRROR_DIRECTORY}/repository
@@ -47,7 +47,7 @@ function get_upstream_time(){
 
 function get_local_time() {
     if [ -f ${MIRROR_DIRECTORY}/${LATEST_UPDATE_FILE} ]; then
-        cat ${MIRROR_DIRECTORY}/${LATEST_UPDATE_FILE} | head -n 1
+        head -n 1 ${MIRROR_DIRECTORY}/${LATEST_UPDATE_FILE}
     else
         echo "1970-01-01 00:00:00 UTC" >${MIRROR_DIRECTORY}/${LATEST_UPDATE_FILE}
         echo "1970-01-01 00:00:00 UTC"
@@ -70,7 +70,7 @@ function should_pull()
         return
     fi
 
-    # If it has been less than 12 hours since the upstream mirror started updating,
+    # If it has been less than 6 hours since the upstream mirror started updating,
     # then the mirror is considered up-to-date
     if [ $(($current_time_epoch - $local_mirror_time_epoch)) -lt 21600  ]; then
         # Log the operation above to stderr
@@ -97,7 +97,6 @@ if [ $(should_pull "$(get_local_time)" "$(get_upstream_time)" "$(date -u)") == "
         echo "Error: rsync failed"
         exit 1
     fi
-    
 else
     echo "Local mirror is up to date. Upstream date: $(get_upstream_time), Local date: $(get_local_time) - current date: $(date -u)"
 fi
