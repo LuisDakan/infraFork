@@ -18,4 +18,41 @@
     enabled: yes
     state: started
 
-# 
+# Configuration for podman
+
+- name: Enable lingering for Podman rootless mode
+  ansible.builtin.shell:
+    cmd: loginctl enable-linger {{ ansible_user }}
+  become: true
+  ignore_errors: yes
+
+
+# Deploying blackbox exporter
+
+- name: Ensure blackbox directory exists
+  ansible.builtin.file:
+    path: /etc/blackbox_exporter
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root   
+
+- name: Copy blackbox exporter configuration
+  ansible.builtin.copy:
+    src: files/prometheus/mirror/blackbox-exporter/conf.yaml
+    dest: /etc/blackbox_exporter/config.yml
+    mode: '0644'
+
+- name: Deploying docker blackbox exporter
+  containers.podman.podman_container:
+    name: blackbox_exporter
+    image: quay.io/prometheus/blackbox-exporter:latest
+    state: started
+    restart_policy: always
+    published_ports:
+      - "9115:9115"
+    volumes:
+      - /etc/blackbox_exporter/config.yml:/etc/blackbox_exporter/config.yml:ro
+    command: "--config.file=/etc/blackbox_exporter/config.yml"
+
+
