@@ -13,6 +13,8 @@
       tags: [nginx]
     - role: mirrors
       tags: [mirrors]
+    - role: observability
+      tags: [observability]
     # - role: maintenance
     #   tags: [maintenance]
     #   tags: [mirrors]

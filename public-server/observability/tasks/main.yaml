@@ -1,0 +1,21 @@
+---
+# Set up observability services
+# Installation section
+
+- name: Installing prometheus and podman
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - prometheus
+    - podman
+
+# Making sure Prometheus service is running
+
+- name: Ensure prometheus service is enabled and started
+  ansible.builtin.systemd:
+    name: prometheus
+    enabled: yes
+    state: started
+
+# 
