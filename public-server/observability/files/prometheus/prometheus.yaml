@@ -1,0 +1,37 @@
+# Prometheus configuration file
+# Main configuration for monitoring LIDSOL infrastructure
+
+global:
+  scrape_interval: 30s       # Default scrape interval
+  scrape_timeout: 10s        # Default timeout for scrapes
+  evaluation_interval: 30s   # Interval for evaluating alerting rules
+  external_labels:
+    monitor: 'lidsol-infra'
+    environment: 'production'
+    location: 'Mexico'
+
+# Prometheus autocheck
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Configuration for mirror and blackbox jobs
+  - job_name: "blackbox-https"
+    metrics_path: /probe
+    params:
+      module: [https_2xx]
+    static_configs:
+      - targets:
+          - https://lidsol.fi-b.unam.mx
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 127.0.0.1:9115
+
+  
+  
+  

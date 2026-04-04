@@ -10,14 +10,6 @@
     - prometheus
     - podman
 
-# Making sure Prometheus service is running
-
-- name: Ensure prometheus service is enabled and started
-  ansible.builtin.systemd:
-    name: prometheus
-    enabled: yes
-    state: started
-
 # Configuration for podman
 
 - name: Enable lingering for Podman rootless mode
@@ -54,5 +46,21 @@
     volumes:
       - /etc/blackbox_exporter/config.yml:/etc/blackbox_exporter/config.yml:ro
     command: "--config.file=/etc/blackbox_exporter/config.yml"
+
+
+# Prometheus configuration
+
+- name: Writing prometheus config file
+  ansible.builtin.copy:
+    src: files/prometheus/prometheus.yaml
+    dest: /etc/prometheus/prometheus.yml
+    mode: '0644'
+
+- name: Ensure prometheus service is enabled and started
+  ansible.builtin.systemd:
+    name: prometheus
+    enabled: yes
+    state: reloaded
+
 
 
