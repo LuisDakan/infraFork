@@ -9,6 +9,7 @@
   loop:
     - prometheus
     - podman
+    - nginx
 
 # Configuration for podman
 
@@ -46,6 +47,47 @@
     volumes:
       - /etc/blackbox_exporter/config.yml:/etc/blackbox_exporter/config.yml:ro
     command: "--config.file=/etc/blackbox_exporter/config.yml"
+
+# Deploying nginx exporter
+
+- name: Add nginx stub module
+  ansible.builtin.copy:
+    src: files/prometheus/nginx-exporter/status.conf
+    dest: /etc/nginx/conf.d/status.conf
+    mode: '0644'
+
+- name: Reload nginx
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: yes
+    state: reloaded
+
+- name: Deploy nginx_exporter
+  containers.podman.podman_container:
+    name: nginx_exporter
+    image: docker.io/nginx/nginx-prometheus-exporter:latest
+    state: started
+    restart_policy: always
+    published_ports:
+      - "9113:9113"
+    command: "-nginx.scrape-uri http://127.0.0.1/nginx_status"
+  
+
+
+# Rule configuration
+- name: Making rule directory
+  ansible.builtin.file:
+    path: /etc/prometheus/rules
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root 
+
+- name: Copying the mirror rule file
+  ansible.builtin.copy:
+    src: files/prometheus/mirror/rules.yaml
+    dest: /etc/prometheus/rules/mirror_rules.yaml
+    mode: '0644'  
 
 
 # Prometheus configuration
