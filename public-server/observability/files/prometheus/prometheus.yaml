@@ -20,6 +20,8 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  #Configuration for nginx exporter job
   - job_name: 'nginx'
     static_configs:
       - targets: ['localhost:9113']
@@ -39,6 +41,10 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: 127.0.0.1:9115
+
+  - job_name: "Tor"
+    static_configs:
+      - targets: ['localhost:9150']
 
 
 

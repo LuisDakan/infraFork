@@ -71,8 +71,57 @@
     published_ports:
       - "9113:9113"
     command: "-nginx.scrape-uri http://127.0.0.1/nginx_status"
-  
 
+# Deploying Tor metrics exporter
+
+- name: Configure Tor MetricsPort in torrc
+  ansible.builtin.lineinfile:
+    path: /etc/tor/torrc
+    regexp: "^MetricsPort"
+    line: "MetricsPort 127.0.0.1:9150"
+    state: present
+  become: true
+
+- name: Configure Tor MetricsPortPolicy in torrc
+  ansible.builtin.lineinfile:
+    path: /etc/tor/torrc
+    regexp: "^MetricsPortPolicy"
+    line: "MetricsPortPolicy accept 127.0.0.1"
+    state: present
+  become: true
+
+# Firewall configuration (It's already in the nftable.conf)
+
+- name: Create temporary in-memory Tor nftables structure
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  loop:
+    - "nft add table inet tor"
+    - "nft add chain inet tor input { type filter hook input priority 0 ; policy accept ; }"
+  # This prevents Ansible from throwing an error if the table already exists
+  failed_when: false 
+
+- name: Configure in-memory Tor metrics firewall rules
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  loop:
+    - "nft add rule inet tor input iif 'lo' accept"
+    - "nft add rule inet tor input tcp dport { 9035, 9150 } drop"
+  changed_when: true
+
+- name: Restart nftable service
+  ansible.builtin.command:
+    name: nftables
+    state: reloaded
+
+- name: Restart Tor service
+  ansible.builtin.systemd:
+    name: tor
+    state: restarted
+    enabled: yes
+  become: true
+  
+# Export metrics
 
 # Rule configuration
 - name: Making rule directory

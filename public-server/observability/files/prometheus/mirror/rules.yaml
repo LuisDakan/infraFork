@@ -1,0 +1,33 @@
+# Mirror rules
+
+groups:
+  - name: probe_latency
+    interval: 30s
+    rules:
+      - record: probe:duration_seconds:avg5m
+        expr: avg_over_time(probe_duration_seconds[5m])
+        labels:
+          severity: info
+      
+      - record: probe:duration_seconds:max5m
+        expr: max_over_time(probe_duration_seconds[5m])
+        labels:
+          severity: warning
+      
+      - alert: ProbeLatencyHigh
+        expr: probe_duration_seconds > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High probe latency detected"
+          description: "Probe to {{ $labels.instance }} took {{ $value }}s (threshold: 5s)"
+      
+      - alert: ProbeDown
+        expr: probe_success == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Probe failed"
+          description: "Probe to {{ $labels.instance }} is down" 
